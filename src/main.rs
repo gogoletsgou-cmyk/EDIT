@@ -1,4 +1,6 @@
 mod ui;
+#[path = "debugs"]
+mod debugs;
 
 use macroquad::prelude::*;
 
@@ -15,9 +17,12 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
     let font = ui::load_font().await;
+    let mut debug_page = debugs::DebugPage::default();
 
     loop {
         ui::draw_ui(&font);
+        debug_page.update();
+        debug_page.draw(&font);
 
         next_frame().await;
     }
