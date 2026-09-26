@@ -1,21 +1,23 @@
+mod ui;
+
 use macroquad::prelude::*;
 
-// fn = 関数ですよ
-// (n, m) = 引数がn, m
-// -> k = 返り値がk
 fn window_conf() -> Conf {
     Conf {
         window_title: "Wikipedia Game".to_owned(),
-        window_width: 1280,
-        window_height: 720,
+        window_width: 1920,
+        window_height: 1080,
+        window_resizable: false,
         ..Default::default()
     }
 }
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let font = ui::load_font().await;
+
     loop {
-        clear_background(BLACK);
+        ui::draw_ui(&font);
 
         next_frame().await;
     }
