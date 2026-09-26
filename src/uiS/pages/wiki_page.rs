@@ -1,10 +1,10 @@
-use macroquad::prelude::*;
+﻿use macroquad::prelude::*;
 
 use crate::ui::ui_screen::{components, layouts};
 use components::{BLUE, INK, MUTED};
 
 /// Wikipedia風のホーム画面と仮のアカウント情報を描画する。
-pub fn draw(font: &Font) -> bool {
+pub fn draw(font: &Font) {
     clear_background(Color::new(0.97, 0.98, 0.98, 1.0));
     layouts::header(font);
 
@@ -15,18 +15,17 @@ pub fn draw(font: &Font) -> bool {
     let profile_width = width - main_width - gap;
     let content_y = top + 16.0;
 
-    let open_nature_article = draw_welcome(font, left, content_y, main_width);
+    draw_welcome(font, left, content_y, main_width);
     draw_account(font, profile_x, content_y, profile_width);
-    open_nature_article
 }
 
 /// 記事の閲覧を中心に、編集もできることを紹介する本文欄を描画する。
-fn draw_welcome(font: &Font, x: f32, y: f32, width: f32) -> bool {
+fn draw_welcome(font: &Font, x: f32, y: f32, width: f32) {
     let height = 610.0;
     components::panel(x, y, width, height);
     let pad = 38.0;
 
-    components::text(font, "Wikipediaへようこそ", x + pad, y + 58.0, 34, INK);
+    components::text(font, "KnowPediaへようこそ", x + pad, y + 58.0, 34, INK);
     components::text(font, "誰もが利用できるフリー百科事典", x + pad, y + 91.0, 18, BLUE);
     components::text(
         font,
@@ -61,10 +60,9 @@ fn draw_welcome(font: &Font, x: f32, y: f32, width: f32) -> bool {
     let tile_gap = 16.0;
     let tile_width = (width - pad * 2.0 - tile_gap * 2.0) / 3.0;
     let topics = [("自然", "生き物や宇宙"), ("歴史", "過去の出来事"), ("文化", "芸術や社会")];
-    let mut open_nature_article = false;
     for (index, (title, description)) in topics.iter().enumerate() {
         let tile_x = x + pad + index as f32 * (tile_width + tile_gap);
-        open_nature_article |= draw_topic_tile(font, tile_x, tile_y, tile_width, title, description, index == 0);
+        draw_topic_tile(font, tile_x, tile_y, tile_width, title, description);
     }
 
     draw_line(x + pad, y + 426.0, x + width - pad, y + 426.0, 1.0, components::BORDER);
@@ -86,23 +84,14 @@ fn draw_welcome(font: &Font, x: f32, y: f32, width: f32) -> bool {
         MUTED,
     );
     components::text(font, "閲覧はいつでも自由に利用できます。", x + pad, y + 578.0, 14, BLUE);
-    open_nature_article
 }
 
 /// 記事の例を並べ、閲覧が主な使い方だと伝える小さなカードを描画する。
-fn draw_topic_tile(font: &Font, x: f32, y: f32, width: f32, title: &str, description: &str, clickable: bool) -> bool {
-    let (mouse_x, mouse_y) = mouse_position();
-    let hovered = clickable && mouse_x >= x && mouse_x <= x + width && mouse_y >= y && mouse_y <= y + 78.0;
-    let background = if hovered {
-        Color::new(0.93, 0.97, 1.0, 1.0)
-    } else {
-        Color::new(0.98, 0.99, 1.0, 1.0)
-    };
-    draw_rectangle(x, y, width, 78.0, background);
+fn draw_topic_tile(font: &Font, x: f32, y: f32, width: f32, title: &str, description: &str) {
+    draw_rectangle(x, y, width, 78.0, Color::new(0.98, 0.99, 1.0, 1.0));
     draw_rectangle_lines(x, y, width, 78.0, 1.0, components::BORDER);
     components::text(font, title, x + 14.0, y + 29.0, 18, BLUE);
     components::text(font, description, x + 14.0, y + 55.0, 13, MUTED);
-    hovered && is_mouse_button_pressed(MouseButton::Left)
 }
 
 /// 仮の初期アイコン、利用者名、支持者数、編集者の役職を表示する。
@@ -146,7 +135,7 @@ fn draw_account(font: &Font, x: f32, y: f32, width: f32) {
     components::text(font, account.role, badge_x + 19.0, y + 261.0, 15, BLUE);
 
     draw_line(x + 28.0, y + 294.0, x + width - 28.0, y + 294.0, 1.0, components::BORDER);
-    components::text(font, "あなたを支持する人", x + 28.0, y + 331.0, 15, MUTED);
+    components::text(font, "支持者", x + 28.0, y + 331.0, 15, MUTED);
     components::text(font, &format!("{} 人", account.supporters), x + 28.0, y + 375.0, 27, INK);
     components::text(font, "編集への貢献を応援しています", x + 28.0, y + 405.0, 13, MUTED);
 }
