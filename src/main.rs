@@ -1,7 +1,8 @@
 use macroquad::prelude::*;
 
-#[macroquad::main("My First Game")]
-
+// fn = 関数ですよ
+// (n, m) = 引数がn, m
+// -> k = 返り値がk
 fn window_conf() -> Conf {
     Conf {
         window_title: "Wikipedia Game".to_owned(),
