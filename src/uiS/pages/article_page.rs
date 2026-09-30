@@ -3,8 +3,80 @@ use macroquad::prelude::*;
 use crate::ui::ui_screen::{components, layouts};
 use components::{BLUE, INK, MUTED};
 
-/// Draw a sample animal article with sections sized to their wrapped text.
+/// Content required to draw an article page.
+pub struct Article<'a> {
+    pub title: &'a str,
+    pub category: &'a str,
+    pub introduction: &'a str,
+    pub sections: &'a [ArticleSection<'a>],
+    pub infobox: ArticleInfobox<'a>,
+}
+
+/// A named body section in an article.
+pub struct ArticleSection<'a> {
+    pub heading: &'a str,
+    pub body: &'a str,
+}
+
+/// A label and value shown in an article's infobox.
+pub struct InfoboxFact<'a> {
+    pub label: &'a str,
+    pub value: &'a str,
+}
+
+/// Content and illustration callback for the right-hand infobox.
+pub struct ArticleInfobox<'a> {
+    pub title: &'a str,
+    pub image_caption: &'a str,
+    pub facts: &'a [InfoboxFact<'a>],
+    pub draw_image: fn(f32, f32, f32, f32),
+}
+
+/// Draw the sample animal article used while the page is under development.
 pub fn draw(font: &Font) -> bool {
+    let sections = [
+        ArticleSection {
+            heading: "特徴",
+            body: "体長はおよそ18センチメートルで、落ち葉の下や倒木のすき間に巣を作る。耳の先には青灰色の短い毛が生えている。",
+        },
+        ArticleSection {
+            heading: "生態",
+            body: "夜間に活動し、木の実や小さな昆虫を食べる。危険を感じると、尾を地面につけて音を立てずに茂みへ隠れる。",
+        },
+        ArticleSection {
+            heading: "観察",
+            body: "人の気配を避けるため、野外で見つけるのは難しい。観察記録では、雨のあとに林床で活動する様子が多く報告されている。",
+        },
+        ArticleSection {
+            heading:"宇おおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおお",
+            body: "宇おおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおお"
+        }
+    ];
+    let facts = [
+        InfoboxFact { label: "分類", value: "哺乳類・齧歯類" },
+        InfoboxFact { label: "生息地", value: "霧の多い山林" },
+        InfoboxFact { label: "体長", value: "約18 cm" },
+        InfoboxFact { label: "活動時間", value: "夜行性" },
+        InfoboxFact { label: "食べ物", value: "木の実・昆虫" },
+        InfoboxFact { label: "ごめんなさい", value: "それはトムです"},
+    ];
+    let article = Article {
+        title: "アオツノモリネズミ",
+        category: "自然 / 動物",
+        introduction: "アオツノモリネズミは、湿った山林に生息する小型の夜行性哺乳類である。長い尾と青みがかった耳が特徴とされる。この記事はレイアウト見本用の架空の動物を紹介している。",
+        sections: &sections,
+        infobox: ArticleInfobox {
+            title: "アオツノモリネズミ",
+            image_caption: "架空の動物・図版見本",
+            facts: &facts,
+            draw_image: draw_animal_placeholder,
+        },
+    };
+    draw_article_page(font, &article)
+}
+
+/// Draw any article with a wrapped right-hand infobox. Returns true when back is clicked.
+pub fn draw_article_page(font: &Font, article: &Article<'_>) -> bool {
     clear_background(Color::new(0.97, 0.98, 0.98, 1.0));
     layouts::header(font);
 
@@ -26,40 +98,24 @@ pub fn draw(font: &Font) -> bool {
     }
 
     let panel_y = top + 38.0;
-    draw_article(font, left, panel_y, width);
+    draw_article(font, left, panel_y, width, article);
     false
 }
 
 /// Wrap article paragraphs, calculate the required panel height, then draw each section.
-fn draw_article(font: &Font, x: f32, y: f32, width: f32) {
+fn draw_article(font: &Font, x: f32, y: f32, width: f32, article: &Article<'_>) {
     let pad = 34.0;
     let text_width = width - pad * 2.0;
     let info_width = (width * 0.34).max(220.0).min(width - pad * 2.0);
     let info_x = x + width - pad - info_width;
     let info_y = y + 104.0;
-    let title = "アオツノモリネズミ";
-    let introduction = "アオツノモリネズミは、湿った山林に生息する小型の夜行性哺乳類である。長い尾と青みがかった耳が特徴とされる。この記事はレイアウト見本用の架空の動物を紹介している。";
-    let sections = [
-        (
-            "特徴",
-            "体長はおよそ18センチメートルで、落ち葉の下や倒木のすき間に巣を作る。耳の先には青灰色の短い毛が生えている。",
-        ),
-        (
-            "生態",
-            "夜間に活動し、木の実や小さな昆虫を食べる。危険を感じると、尾を地面につけて音を立てずに茂みへ隠れる。",
-        ),
-        (
-            "観察",
-            "人の気配を避けるため、野外で見つけるのは難しい。観察記録では、雨のあとに林床で活動する様子が多く報告されている。",
-        ),
-    ];
     // The lead paragraph uses the remaining left column beside the infobox.
-    let info_height = information_box_height(font, info_width);
+    let info_height = information_box_height(font, info_width, &article.infobox);
     let info_bottom = info_y + info_height;
     let narrow_width = text_width - info_width - 24.0;
     let intro_lines = wrap_text_around_infobox(
         font,
-        introduction,
+        article.introduction,
         narrow_width,
         text_width,
         y + 129.0,
@@ -71,10 +127,10 @@ fn draw_article(font: &Font, x: f32, y: f32, width: f32) {
     let section_start_y = y + 129.0 + intro_lines.len() as f32 * 25.0 + 27.0;
     let mut section_y = section_start_y;
     let mut section_lines = Vec::new();
-    for (heading, body) in &sections {
+    for section in article.sections {
         let lines = wrap_text_around_infobox(
             font,
-            body,
+            section.body,
             narrow_width,
             text_width,
             section_y + 51.0,
@@ -82,7 +138,7 @@ fn draw_article(font: &Font, x: f32, y: f32, width: f32) {
             info_bottom,
             16,
         );
-        section_lines.push((*heading, lines));
+        section_lines.push((section.heading, lines));
         section_y += 42.0 + section_lines.last().unwrap().1.len() as f32 * 25.0 + 20.0;
     }
     // The article panel owns both the text flow and the infobox.  Its bottom
@@ -90,10 +146,10 @@ fn draw_article(font: &Font, x: f32, y: f32, width: f32) {
     let content_bottom = section_y.max(info_bottom);
     let panel_height = content_bottom - y + 12.0;
     components::panel(x, y, width, panel_height);
-    components::text(font, title, x + pad, y + 57.0, 32, INK);
-    components::text(font, "自然 / 動物", x + pad, y + 88.0, 15, BLUE);
+    components::text(font, article.title, x + pad, y + 57.0, 32, INK);
+    components::text(font, article.category, x + pad, y + 88.0, 15, BLUE);
     draw_wrapped_lines(font, &intro_lines, x + pad, y + 129.0, 16, 25.0, INK);
-    draw_information_box(font, info_x, info_y, info_width);
+    draw_information_box(font, info_x, info_y, info_width, &article.infobox);
 
     section_y = section_start_y;
     for (heading, lines) in &section_lines {
@@ -107,37 +163,27 @@ fn draw_article(font: &Font, x: f32, y: f32, width: f32) {
     }
 }
 
-/// Draw the animal's sample illustration and dynamically sized fact rows.
-fn information_facts() -> [(&'static str, &'static str); 5] {
-    [
-        ("分類", "哺乳類・齧歯類"),
-        ("生息地", "霧の多い山林"),
-        ("体長", "約18 cm"),
-        ("活動時間", "夜行性"),
-        ("食べ物", "木の実・昆虫"),
-    ]
-}
-
-fn information_box_height(font: &Font, width: f32) -> f32 {
+/// Calculate the infobox height from its supplied title and facts.
+fn information_box_height(font: &Font, width: f32, infobox: &ArticleInfobox<'_>) -> f32 {
     let inner_width = (width - 36.0).max(1.0);
-    let title_lines = wrap_text(font, "アオツノモリネズミ", inner_width, 18);
+    let title_lines = wrap_text(font, infobox.title, inner_width, 18);
     let image_y = 30.0 + title_lines.len() as f32 * 22.0;
-    let fact_rows_height: f32 = information_facts()
+    let fact_rows_height: f32 = infobox
+        .facts
         .iter()
-        .map(|(_, value)| {
-            let value_lines = wrap_text(font, value, inner_width, 16);
+        .map(|fact| {
+            let value_lines = wrap_text(font, fact.value, inner_width, 16);
             (54.0_f32).max(28.0 + value_lines.len() as f32 * 20.0)
         })
         .sum();
     image_y + 158.0 + 26.0 + fact_rows_height + 36.0
 }
 
-fn draw_information_box(font: &Font, x: f32, y: f32, width: f32) {
-    let facts = information_facts();
+fn draw_information_box(font: &Font, x: f32, y: f32, width: f32, infobox: &ArticleInfobox<'_>) {
     let inner_width = (width - 36.0).max(1.0);
-    let title_lines = wrap_text(font, "アオツノモリネズミ", inner_width, 18);
+    let title_lines = wrap_text(font, infobox.title, inner_width, 18);
     let image_y_offset = 30.0 + title_lines.len() as f32 * 22.0;
-    let height = information_box_height(font, width);
+    let height = information_box_height(font, width, infobox);
     components::panel(x, y, width, height);
     draw_wrapped_lines(font, &title_lines, x + 18.0, y + 34.0, 18, 22.0, INK);
 
@@ -147,17 +193,17 @@ fn draw_information_box(font: &Font, x: f32, y: f32, width: f32) {
     let image_height = 158.0;
     draw_rectangle(image_x, image_y, image_width, image_height, Color::new(0.94, 0.96, 0.94, 1.0));
     draw_rectangle_lines(image_x, image_y, image_width, image_height, 1.0, components::BORDER);
-    draw_animal_placeholder(image_x, image_y, image_width, image_height);
-    components::text(font, "架空の動物・図版見本", image_x + 10.0, image_y + image_height - 10.0, 12, MUTED);
+    (infobox.draw_image)(image_x, image_y, image_width, image_height);
+    components::text(font, infobox.image_caption, image_x + 10.0, image_y + image_height - 10.0, 12, MUTED);
 
     let mut row_y = image_y + image_height + 26.0;
-    for (index, (label, value)) in facts.iter().enumerate() {
-        let value_lines = wrap_text(font, value, inner_width, 16);
+    for (index, fact) in infobox.facts.iter().enumerate() {
+        let value_lines = wrap_text(font, fact.value, inner_width, 16);
         let row_height = 54.0_f32.max(28.0 + value_lines.len() as f32 * 20.0);
-        components::text(font, label, x + 18.0, row_y, 14, MUTED);
+        components::text(font, fact.label, x + 18.0, row_y, 14, MUTED);
         draw_wrapped_lines(font, &value_lines, x + 18.0, row_y + 23.0, 16, 20.0, INK);
         row_y += row_height;
-        if index + 1 < facts.len() {
+        if index + 1 < infobox.facts.len() {
             draw_line(x + 18.0, row_y - 11.0, x + width - 18.0, row_y - 11.0, 1.0, components::BORDER);
         }
     }
