@@ -32,8 +32,14 @@ pub struct ArticleInfobox<'a> {
     pub draw_image: fn(f32, f32, f32, f32),
 }
 
+/// Per-page state that preserves the current vertical scroll position.
+#[derive(Default)]
+pub struct ArticlePageState {
+    scroll_y: f32,
+}
+
 /// Draw the sample animal article used while the page is under development.
-pub fn draw(font: &Font) -> bool {
+pub fn draw(font: &Font, state: &mut ArticlePageState) -> bool {
     let sections = [
         ArticleSection {
             heading: "特徴",
@@ -72,15 +78,32 @@ pub fn draw(font: &Font) -> bool {
             draw_image: draw_animal_placeholder,
         },
     };
-    draw_article_page(font, &article)
+    draw_article_page(font, &article, state)
 }
 
 /// Draw any article with a wrapped right-hand infobox. Returns true when back is clicked.
-pub fn draw_article_page(font: &Font, article: &Article<'_>) -> bool {
+pub fn draw_article_page(font: &Font, article: &Article<'_>, state: &mut ArticlePageState) -> bool {
     clear_background(Color::new(0.97, 0.98, 0.98, 1.0));
-    layouts::header(font);
 
     let (left, top, width) = layouts::contents_bounds();
+    let panel_y = top + 38.0;
+    let viewport_bottom = screen_height() - 20.0;
+    let panel_height = article_panel_height(font, width, article);
+    let max_scroll = (panel_height - (viewport_bottom - panel_y)).max(0.0);
+    let (_, wheel_y) = mouse_wheel();
+    let (_, mouse_y) = mouse_position();
+    if mouse_y >= panel_y && mouse_y <= viewport_bottom {
+        state.scroll_y = (state.scroll_y - wheel_y * 48.0).clamp(0.0, max_scroll);
+    } else {
+        state.scroll_y = state.scroll_y.clamp(0.0, max_scroll);
+    }
+
+    draw_article(font, left, panel_y - state.scroll_y, width, article);
+
+    // Keep the header and navigation area fixed while article content moves beneath it.
+    draw_rectangle(0.0, 82.0, screen_width(), panel_y - 82.0, Color::new(0.97, 0.98, 0.98, 1.0));
+    layouts::header(font);
+    draw_scrollbar(panel_y, viewport_bottom, panel_height, state.scroll_y, max_scroll);
     let back_y = top + 20.0;
     let (mouse_x, mouse_y) = mouse_position();
     let back_hovered = mouse_x >= left && mouse_x <= left + 190.0
@@ -97,9 +120,64 @@ pub fn draw_article_page(font: &Font, article: &Article<'_>) -> bool {
         return true;
     }
 
-    let panel_y = top + 38.0;
-    draw_article(font, left, panel_y, width, article);
     false
+}
+
+/// Draw the right-side scroll indicator only when the article exceeds the viewport.
+fn draw_scrollbar(
+    viewport_top: f32,
+    viewport_bottom: f32,
+    content_height: f32,
+    scroll_y: f32,
+    max_scroll: f32,
+) {
+    if max_scroll <= 0.0 {
+        return;
+    }
+
+    let track_height = viewport_bottom - viewport_top;
+    let thumb_height = (track_height * track_height / content_height)
+        .clamp(36.0, track_height);
+    let thumb_y = viewport_top + (scroll_y / max_scroll) * (track_height - thumb_height);
+    let x = screen_width() - 34.0;
+    let bar_width = 8.0;
+
+    draw_rectangle(x, viewport_top, bar_width, track_height, Color::new(0.82, 0.85, 0.87, 0.55));
+    draw_rectangle(x, thumb_y, bar_width, thumb_height, Color::new(0.32, 0.43, 0.51, 0.85));
+}
+
+/// Measure the article's outer panel so scrolling includes both text and infobox.
+fn article_panel_height(font: &Font, width: f32, article: &Article<'_>) -> f32 {
+    let pad = 34.0;
+    let text_width = width - pad * 2.0;
+    let info_width = (width * 0.34).max(220.0).min(width - pad * 2.0);
+    let info_bottom = 104.0 + information_box_height(font, info_width, &article.infobox);
+    let narrow_width = text_width - info_width - 24.0;
+    let intro_lines = wrap_text_around_infobox(
+        font,
+        article.introduction,
+        narrow_width,
+        text_width,
+        129.0,
+        25.0,
+        info_bottom,
+        16,
+    );
+    let mut section_y = 129.0 + intro_lines.len() as f32 * 25.0 + 27.0;
+    for section in article.sections {
+        let lines = wrap_text_around_infobox(
+            font,
+            section.body,
+            narrow_width,
+            text_width,
+            section_y + 51.0,
+            25.0,
+            info_bottom,
+            16,
+        );
+        section_y += 42.0 + lines.len() as f32 * 25.0 + 20.0;
+    }
+    section_y.max(info_bottom) + 12.0
 }
 
 /// Wrap article paragraphs, calculate the required panel height, then draw each section.
@@ -141,10 +219,7 @@ fn draw_article(font: &Font, x: f32, y: f32, width: f32, article: &Article<'_>) 
         section_lines.push((section.heading, lines));
         section_y += 42.0 + section_lines.last().unwrap().1.len() as f32 * 25.0 + 20.0;
     }
-    // The article panel owns both the text flow and the infobox.  Its bottom
-    // must therefore cover whichever child extends farther down.
-    let content_bottom = section_y.max(info_bottom);
-    let panel_height = content_bottom - y + 12.0;
+    let panel_height = article_panel_height(font, width, article);
     components::panel(x, y, width, panel_height);
     components::text(font, article.title, x + pad, y + 57.0, 32, INK);
     components::text(font, article.category, x + pad, y + 88.0, 15, BLUE);

@@ -4,7 +4,7 @@ mod ui_screen;
 
 pub enum Page {
     Home,
-    Article,
+    Article(ui_screen::pages::article_page::ArticlePageState),
 }
 
 pub async fn load_font() -> Font {
@@ -14,11 +14,11 @@ pub fn draw_ui(font: &Font, page: &mut Page) {
     match page {
         Page::Home => {
             if ui_screen::pages::wiki_page::draw(font) {
-                *page = Page::Article;
+                *page = Page::Article(Default::default());
             }
         }
-        Page::Article => {
-            if ui_screen::pages::article_page::draw(font) {
+        Page::Article(state) => {
+            if ui_screen::pages::article_page::draw(font, state) {
                 *page = Page::Home;
             }
         }

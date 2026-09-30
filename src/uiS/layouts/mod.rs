@@ -8,12 +8,12 @@ pub fn header(font: &Font) {
     components::text(font, "KP", 58.0, 51.0, 30, INK);
     components::text(font, "KnowPedia", 112.0, 37.0, 19, INK);
     components::text(font, "フリー百科事典", 112.0, 59.0, 14, MUTED);
-    let sx = width - 416.0;
+    let sx = width - 456.0;
     draw_rectangle(sx, 22.0, 360.0, 38.0, Color::new(0.97, 0.98, 0.98, 1.0));
     draw_rectangle_lines(sx, 22.0, 360.0, 38.0, 1.0, components::BORDER);
     components::text(font, "記事を検索", sx + 16.0, 46.0, 16, MUTED);
 
-    draw_notification_bell(width - 28.0, 41.0);
+    draw_notification_bell(width - 68.0, 41.0);
 }
 
 /// Draw a small bell beside the search field and blink its notification badge.
