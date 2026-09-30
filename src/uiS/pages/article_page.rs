@@ -25,13 +25,8 @@ pub fn draw(font: &Font) -> bool {
         return true;
     }
 
-    let gap = 24.0;
-    let main_width = width * 0.67;
-    let info_x = left + main_width + gap;
-    let info_width = width - main_width - gap;
     let panel_y = top + 38.0;
-    draw_article(font, left, panel_y, main_width);
-    draw_information_box(font, info_x, panel_y, info_width);
+    draw_article(font, left, panel_y, width);
     false
 }
 
@@ -39,6 +34,9 @@ pub fn draw(font: &Font) -> bool {
 fn draw_article(font: &Font, x: f32, y: f32, width: f32) {
     let pad = 34.0;
     let text_width = width - pad * 2.0;
+    let info_width = (width * 0.34).max(220.0).min(width - pad * 2.0);
+    let info_x = x + width - pad - info_width;
+    let info_y = y + 104.0;
     let title = "アオツノモリネズミ";
     let introduction = "アオツノモリネズミは、湿った山林に生息する小型の夜行性哺乳類である。長い尾と青みがかった耳が特徴とされる。この記事はレイアウト見本用の架空の動物を紹介している。";
     let sections = [
@@ -55,48 +53,96 @@ fn draw_article(font: &Font, x: f32, y: f32, width: f32) {
             "人の気配を避けるため、野外で見つけるのは難しい。観察記録では、雨のあとに林床で活動する様子が多く報告されている。",
         ),
     ];
-    let intro_lines = wrap_text(font, introduction, text_width, 16);
-    let section_lines: Vec<(&str, Vec<String>)> = sections
-        .iter()
-        .map(|(heading, body)| (*heading, wrap_text(font, body, text_width, 16)))
-        .collect();
-
-    let mut cursor = y + 134.0 + intro_lines.len() as f32 * 25.0 + 27.0;
-    for (_, lines) in &section_lines {
-        cursor += 42.0 + lines.len() as f32 * 25.0 + 20.0;
+    // The lead paragraph uses the remaining left column beside the infobox.
+    let info_height = information_box_height(font, info_width);
+    let info_bottom = info_y + info_height;
+    let narrow_width = text_width - info_width - 24.0;
+    let intro_lines = wrap_text_around_infobox(
+        font,
+        introduction,
+        narrow_width,
+        text_width,
+        y + 129.0,
+        25.0,
+        info_bottom,
+        16,
+    );
+    // Continue sections beside the infobox, then use the full article width below it.
+    let section_start_y = y + 129.0 + intro_lines.len() as f32 * 25.0 + 27.0;
+    let mut section_y = section_start_y;
+    let mut section_lines = Vec::new();
+    for (heading, body) in &sections {
+        let lines = wrap_text_around_infobox(
+            font,
+            body,
+            narrow_width,
+            text_width,
+            section_y + 51.0,
+            25.0,
+            info_bottom,
+            16,
+        );
+        section_lines.push((*heading, lines));
+        section_y += 42.0 + section_lines.last().unwrap().1.len() as f32 * 25.0 + 20.0;
     }
-    let panel_height = cursor - y + 12.0;
+    // The article panel owns both the text flow and the infobox.  Its bottom
+    // must therefore cover whichever child extends farther down.
+    let content_bottom = section_y.max(info_bottom);
+    let panel_height = content_bottom - y + 12.0;
     components::panel(x, y, width, panel_height);
-
     components::text(font, title, x + pad, y + 57.0, 32, INK);
     components::text(font, "自然 / 動物", x + pad, y + 88.0, 15, BLUE);
     draw_wrapped_lines(font, &intro_lines, x + pad, y + 129.0, 16, 25.0, INK);
+    draw_information_box(font, info_x, info_y, info_width);
 
-    let mut section_y = y + 134.0 + intro_lines.len() as f32 * 25.0 + 27.0;
+    section_y = section_start_y;
     for (heading, lines) in &section_lines {
-        draw_line(x + pad, section_y - 10.0, x + width - pad, section_y - 10.0, 1.0, components::BORDER);
-        components::text(font, heading, x + pad, section_y + 17.0, 22, INK);
-        draw_wrapped_lines(font, lines, x + pad, section_y + 51.0, 16, 25.0, MUTED);
+        let beside_infobox = section_y + 17.0 < info_bottom;
+        let section_width = if beside_infobox { narrow_width } else { text_width };
+        let section_x = x + pad;
+        draw_line(section_x, section_y - 10.0, section_x + section_width, section_y - 10.0, 1.0, components::BORDER);
+        components::text(font, heading, section_x, section_y + 17.0, 22, INK);
+        draw_wrapped_lines(font, lines, section_x, section_y + 51.0, 16, 25.0, MUTED);
         section_y += 42.0 + lines.len() as f32 * 25.0 + 20.0;
     }
 }
 
 /// Draw the animal's sample illustration and dynamically sized fact rows.
-fn draw_information_box(font: &Font, x: f32, y: f32, width: f32) {
-    let facts = [
+fn information_facts() -> [(&'static str, &'static str); 5] {
+    [
         ("分類", "哺乳類・齧歯類"),
         ("生息地", "霧の多い山林"),
         ("体長", "約18 cm"),
         ("活動時間", "夜行性"),
         ("食べ物", "木の実・昆虫"),
-    ];
-    let row_height = 54.0;
-    let height = 272.0 + facts.len() as f32 * row_height;
+    ]
+}
+
+fn information_box_height(font: &Font, width: f32) -> f32 {
+    let inner_width = (width - 36.0).max(1.0);
+    let title_lines = wrap_text(font, "アオツノモリネズミ", inner_width, 18);
+    let image_y = 30.0 + title_lines.len() as f32 * 22.0;
+    let fact_rows_height: f32 = information_facts()
+        .iter()
+        .map(|(_, value)| {
+            let value_lines = wrap_text(font, value, inner_width, 16);
+            (54.0_f32).max(28.0 + value_lines.len() as f32 * 20.0)
+        })
+        .sum();
+    image_y + 158.0 + 26.0 + fact_rows_height + 36.0
+}
+
+fn draw_information_box(font: &Font, x: f32, y: f32, width: f32) {
+    let facts = information_facts();
+    let inner_width = (width - 36.0).max(1.0);
+    let title_lines = wrap_text(font, "アオツノモリネズミ", inner_width, 18);
+    let image_y_offset = 30.0 + title_lines.len() as f32 * 22.0;
+    let height = information_box_height(font, width);
     components::panel(x, y, width, height);
-    components::text(font, "アオツノモリネズミ", x + 18.0, y + 34.0, 18, INK);
+    draw_wrapped_lines(font, &title_lines, x + 18.0, y + 34.0, 18, 22.0, INK);
 
     let image_x = x + 18.0;
-    let image_y = y + 52.0;
+    let image_y = y + image_y_offset;
     let image_width = width - 36.0;
     let image_height = 158.0;
     draw_rectangle(image_x, image_y, image_width, image_height, Color::new(0.94, 0.96, 0.94, 1.0));
@@ -106,8 +152,10 @@ fn draw_information_box(font: &Font, x: f32, y: f32, width: f32) {
 
     let mut row_y = image_y + image_height + 26.0;
     for (index, (label, value)) in facts.iter().enumerate() {
+        let value_lines = wrap_text(font, value, inner_width, 16);
+        let row_height = 54.0_f32.max(28.0 + value_lines.len() as f32 * 20.0);
         components::text(font, label, x + 18.0, row_y, 14, MUTED);
-        components::text(font, value, x + 18.0, row_y + 23.0, 16, INK);
+        draw_wrapped_lines(font, &value_lines, x + 18.0, row_y + 23.0, 16, 20.0, INK);
         row_y += row_height;
         if index + 1 < facts.len() {
             draw_line(x + 18.0, row_y - 11.0, x + width - 18.0, row_y - 11.0, 1.0, components::BORDER);
@@ -141,6 +189,38 @@ fn wrap_text(font: &Font, text: &str, max_width: f32, size: u16) -> Vec<String> 
         candidate.push(character);
         let candidate_width = measure_text(&candidate, Some(font), size, 1.0).width;
         if !current.is_empty() && candidate_width > max_width {
+            lines.push(current);
+            current = character.to_string();
+        } else {
+            current = candidate;
+        }
+    }
+    if !current.is_empty() {
+        lines.push(current);
+    }
+    lines
+}
+
+/// Wrap text line by line, widening each line after it passes the infobox bottom.
+fn wrap_text_around_infobox(
+    font: &Font,
+    text: &str,
+    narrow_width: f32,
+    full_width: f32,
+    first_baseline: f32,
+    line_height: f32,
+    infobox_bottom: f32,
+    size: u16,
+) -> Vec<String> {
+    let mut lines = Vec::new();
+    let mut current = String::new();
+
+    for character in text.chars() {
+        let line_y = first_baseline + lines.len() as f32 * line_height;
+        let max_width = if line_y < infobox_bottom { narrow_width } else { full_width };
+        let mut candidate = current.clone();
+        candidate.push(character);
+        if !current.is_empty() && measure_text(&candidate, Some(font), size, 1.0).width > max_width {
             lines.push(current);
             current = character.to_string();
         } else {
