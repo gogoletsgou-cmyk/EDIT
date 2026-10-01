@@ -38,8 +38,23 @@ pub struct ArticlePageState {
     scroll_y: f32,
 }
 
+/// Identifies which sample article to show.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum ArticleId {
+    AotsunoMorinezumi,
+    ShiromoyaSanrin,
+}
+
+/// Draw the selected sample article. Returns true when back is clicked.
+pub fn draw(font: &Font, id: ArticleId, state: &mut ArticlePageState) -> bool {
+    match id {
+        ArticleId::AotsunoMorinezumi => draw_aotsuno_morinezumi(font, state),
+        ArticleId::ShiromoyaSanrin => draw_shiromoya_sanrin(font, state),
+    }
+}
+
 /// Draw the sample animal article used while the page is under development.
-pub fn draw(font: &Font, state: &mut ArticlePageState) -> bool {
+fn draw_aotsuno_morinezumi(font: &Font, state: &mut ArticlePageState) -> bool {
     let sections = [
         ArticleSection {
             heading: "特徴",
@@ -54,13 +69,18 @@ pub fn draw(font: &Font, state: &mut ArticlePageState) -> bool {
             body: "人の気配を避けるため、野外で見つけるのは難しい。観察記録では、雨のあとに林床で活動する様子が多く報告されている。",
         },
         ArticleSection {
+            heading: "リンクのテスト",
+            // Repeat the link so that some occurrences are split across wrapped lines.
+            body: "シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林。",
+        },
+        ArticleSection {
             heading:"宇おおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおお",
             body: "宇おおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおお"
         }
     ];
     let facts = [
         InfoboxFact { label: "分類", value: "哺乳類・齧歯類" },
-        InfoboxFact { label: "生息地", value: "霧の多い山林" },
+        InfoboxFact { label: "生息地", value: "シロモヤ山林" },
         InfoboxFact { label: "体長", value: "約18 cm" },
         InfoboxFact { label: "活動時間", value: "夜行性" },
         InfoboxFact { label: "食べ物", value: "木の実・昆虫" },
@@ -69,13 +89,50 @@ pub fn draw(font: &Font, state: &mut ArticlePageState) -> bool {
     let article = Article {
         title: "アオツノモリネズミ",
         category: "自然 / 動物",
-        introduction: "アオツノモリネズミは、湿った山林に生息する小型の夜行性哺乳類である。長い尾と青みがかった耳が特徴とされる。この記事はレイアウト見本用の架空の動物を紹介している。",
+        introduction: "アオツノモリネズミは、シロモヤ山林などの湿った山林に生息する小型の夜行性哺乳類である。長い尾と青みがかった耳が特徴とされる。この記事はレイアウト見本用の架空の動物を紹介している。",
         sections: &sections,
         infobox: ArticleInfobox {
             title: "アオツノモリネズミ",
             image_caption: "架空の動物・図版見本",
             facts: &facts,
             draw_image: draw_animal_placeholder,
+        },
+    };
+    draw_article_page(font, &article, state)
+}
+
+/// Draw the sample forest article linked from the animal article.
+fn draw_shiromoya_sanrin(font: &Font, state: &mut ArticlePageState) -> bool {
+    let sections = [
+        ArticleSection {
+            heading: "気候",
+            body: "一年のうち約250日は白い霧に包まれ、昼でも見通しが悪い。気温の変化が小さく、地面は一年中湿っている。",
+        },
+        ArticleSection {
+            heading: "植生",
+            body: "背の高い針葉樹が密に生え、林床は苔やシダに覆われている。倒木が多く、小動物の隠れ場所になっている。",
+        },
+        ArticleSection {
+            heading: "生き物",
+            body: "林床にはアオツノモリネズミなどの夜行性の小動物が暮らしている。霧の濃い夜には、落ち葉を踏む小さな音が聞こえることがある。",
+        },
+    ];
+    let facts = [
+        InfoboxFact { label: "種類", value: "山林" },
+        InfoboxFact { label: "標高", value: "約1200 m" },
+        InfoboxFact { label: "霧の日数", value: "年間 約250日" },
+        InfoboxFact { label: "代表的な生き物", value: "アオツノモリネズミ" },
+    ];
+    let article = Article {
+        title: "シロモヤ山林",
+        category: "自然 / 地理",
+        introduction: "シロモヤ山林は、一年の大半が白い霧に包まれる山林である。湿度が高く、アオツノモリネズミの主な生息地として知られる。この記事はリンク確認用の架空の土地を紹介している。",
+        sections: &sections,
+        infobox: ArticleInfobox {
+            title: "シロモヤ山林",
+            image_caption: "架空の山林・図版見本",
+            facts: &facts,
+            draw_image: draw_forest_placeholder,
         },
     };
     draw_article_page(font, &article, state)
@@ -98,7 +155,10 @@ pub fn draw_article_page(font: &Font, article: &Article<'_>, state: &mut Article
         state.scroll_y = state.scroll_y.clamp(0.0, max_scroll);
     }
 
-    draw_article(font, left, panel_y - state.scroll_y, width, article);
+    // Links in scrolled content only react inside the visible article area, not under the header.
+    components::with_link_area(panel_y, screen_height(), || {
+        draw_article(font, left, panel_y - state.scroll_y, width, article)
+    });
 
     // Keep the header and navigation area fixed while article content moves beneath it.
     draw_rectangle(0.0, 82.0, screen_width(), panel_y - 82.0, Color::new(0.97, 0.98, 0.98, 1.0));
@@ -300,6 +360,28 @@ fn draw_animal_placeholder(x: f32, y: f32, width: f32, height: f32) {
     draw_line(center_x - 76.0, center_y + 22.0, center_x - 91.0, center_y + 17.0, 3.0, fur);
 }
 
+/// Draw a simple misty forest placeholder inside the article's figure box.
+fn draw_forest_placeholder(x: f32, y: f32, width: f32, height: f32) {
+    let ground_y = y + height * 0.8;
+    let trunk = Color::new(0.45, 0.36, 0.28, 1.0);
+    let leaves = Color::new(0.27, 0.45, 0.36, 1.0);
+    for index in 0..5 {
+        let tree_x = x + width * (0.14 + index as f32 * 0.18);
+        let tree_height = height * if index % 2 == 0 { 0.55 } else { 0.45 };
+        draw_rectangle(tree_x - 4.0, ground_y - 18.0, 8.0, 18.0, trunk);
+        draw_triangle(
+            vec2(tree_x, ground_y - 18.0 - tree_height),
+            vec2(tree_x - 26.0, ground_y - 18.0),
+            vec2(tree_x + 26.0, ground_y - 18.0),
+            leaves,
+        );
+    }
+    // Translucent bands to suggest fog drifting between the trees.
+    let mist = Color::new(1.0, 1.0, 1.0, 0.55);
+    draw_rectangle(x, y + height * 0.38, width, 16.0, mist);
+    draw_rectangle(x, y + height * 0.58, width, 22.0, mist);
+}
+
 /// Split Japanese text at character boundaries so each line fits its available width.
 fn wrap_text(font: &Font, text: &str, max_width: f32, size: u16) -> Vec<String> {
     let mut lines = Vec::new();
@@ -364,8 +446,6 @@ fn draw_wrapped_lines(
     line_height: f32,
     color: Color,
 ) -> f32 {
-    for (index, line) in lines.iter().enumerate() {
-        components::text(font, line, x, first_baseline + index as f32 * line_height, size, color);
-    }
+    components::text_lines(font, lines, x, first_baseline, size, line_height, color);
     lines.len() as f32 * line_height
 }

@@ -1,14 +1,21 @@
 ﻿use macroquad::prelude::*;
 
+mod link;
+pub use link::{set_current_page, take_clicked_link, with_link_area, LinkTarget};
+
 pub const INK: Color = Color::new(0.12, 0.16, 0.20, 1.0);
 pub const MUTED: Color = Color::new(0.40, 0.46, 0.51, 1.0);
 pub const BORDER: Color = Color::new(0.84, 0.87, 0.89, 1.0);
 pub const BLUE: Color = Color::new(0.20, 0.39, 0.62, 1.0);
 pub const PAPER: Color = Color::new(1.0, 1.0, 1.0, 1.0);
 
-/// 指定した位置・サイズ・色でテキストを描画する。
+/// 指定した位置・サイズ・色でテキストを描画する。登録済みの文字列はリンクとして動く。
 pub fn text(font: &Font, value: &str, x: f32, y: f32, size: u16, color: Color) {
-    draw_text_ex(value, x, y, TextParams { font: Some(font), font_size: size, color, ..Default::default() });
+    link::draw_lines(font, &[value], x, y, size, 0.0, color);
+}
+/// 折り返し済みの行を描画する。行をまたいだリンク文字列も一つのリンクとして動く。
+pub fn text_lines(font: &Font, lines: &[String], x: f32, first_baseline: f32, size: u16, line_height: f32, color: Color) {
+    link::draw_lines(font, lines, x, first_baseline, size, line_height, color);
 }
 /// 白い背景と枠線を持つパネルを描画する。
 pub fn panel(x: f32, y: f32, width: f32, height: f32) {
