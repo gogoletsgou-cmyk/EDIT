@@ -1,7 +1,7 @@
 ﻿use macroquad::prelude::*;
 
 mod link;
-pub use link::{set_current_page, take_clicked_link, with_link_area, LinkTarget};
+pub use link::{open_page, set_current_page, take_clicked_link, with_link_area, LinkTarget};
 
 pub const INK: Color = Color::new(0.12, 0.16, 0.20, 1.0);
 pub const MUTED: Color = Color::new(0.40, 0.46, 0.51, 1.0);

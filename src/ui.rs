@@ -3,7 +3,7 @@ use macroquad::prelude::*;
 mod ui_screen;
 
 use ui_screen::components::{self, LinkTarget};
-use ui_screen::pages::article_page::{self, ArticleId, ArticlePageState};
+use ui_screen::pages::article_page::{ArticleId, ArticlePageState};
 
 pub enum Page {
     Home,
@@ -20,19 +20,16 @@ pub fn draw_ui(font: &Font, page: &mut Page) {
     });
 
     match page {
-        Page::Home => {
-            if ui_screen::pages::wiki_page::draw(font) {
-                *page = Page::Article(ArticleId::AotsunoMorinezumi, Default::default());
-            }
-        }
+        Page::Home => ui_screen::pages::wiki_page::draw(font),
         Page::Article(id, state) => {
-            if article_page::draw(font, *id, state) {
+            if id.draw(font, state) {
                 *page = Page::Home;
             }
         }
     }
 
-    // Follow a text link clicked anywhere on the page. Links to the current page never fire.
+    // Follow a text link clicked anywhere on the page, or a page opened with `open_page`.
+    // Links to the current page never fire.
     match components::take_clicked_link() {
         Some(LinkTarget::Home) => *page = Page::Home,
         Some(LinkTarget::Article(id)) => *page = Page::Article(id, Default::default()),

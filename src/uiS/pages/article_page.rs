@@ -45,17 +45,29 @@ pub enum ArticleId {
     ShiromoyaSanrin,
 }
 
-/// Draw the selected sample article. Returns true when back is clicked.
-pub fn draw(font: &Font, id: ArticleId, state: &mut ArticlePageState) -> bool {
-    match id {
-        ArticleId::AotsunoMorinezumi => draw_aotsuno_morinezumi(font, state),
-        ArticleId::ShiromoyaSanrin => draw_shiromoya_sanrin(font, state),
+impl ArticleId {
+    /// Return this article's content.
+    pub fn article(self) -> Article<'static> {
+        match self {
+            ArticleId::AotsunoMorinezumi => aotsuno_morinezumi(),
+            ArticleId::ShiromoyaSanrin => shiromoya_sanrin(),
+        }
+    }
+
+    /// Draw this article page. Returns true when back is clicked.
+    pub fn draw(self, font: &Font, state: &mut ArticlePageState) -> bool {
+        draw_article_page(font, &self.article(), state)
+    }
+
+    /// Move to this article page from anywhere. The page switches at the end of the frame.
+    pub fn open(self) {
+        components::open_page(components::LinkTarget::Article(self));
     }
 }
 
-/// Draw the sample animal article used while the page is under development.
-fn draw_aotsuno_morinezumi(font: &Font, state: &mut ArticlePageState) -> bool {
-    let sections = [
+/// Content of the sample animal article used while the page is under development.
+pub fn aotsuno_morinezumi() -> Article<'static> {
+    let sections = &[
         ArticleSection {
             heading: "特徴",
             body: "体長はおよそ18センチメートルで、落ち葉の下や倒木のすき間に巣を作る。耳の先には青灰色の短い毛が生えている。",
@@ -73,12 +85,8 @@ fn draw_aotsuno_morinezumi(font: &Font, state: &mut ArticlePageState) -> bool {
             // Repeat the link so that some occurrences are split across wrapped lines.
             body: "シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林、シロモヤ山林。",
         },
-        ArticleSection {
-            heading:"宇おおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおお",
-            body: "宇おおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおおお"
-        }
     ];
-    let facts = [
+    let facts = &[
         InfoboxFact { label: "分類", value: "哺乳類・齧歯類" },
         InfoboxFact { label: "生息地", value: "シロモヤ山林" },
         InfoboxFact { label: "体長", value: "約18 cm" },
@@ -86,24 +94,23 @@ fn draw_aotsuno_morinezumi(font: &Font, state: &mut ArticlePageState) -> bool {
         InfoboxFact { label: "食べ物", value: "木の実・昆虫" },
         InfoboxFact { label: "ごめんなさい", value: "それはトムです"},
     ];
-    let article = Article {
+    Article {
         title: "アオツノモリネズミ",
         category: "自然 / 動物",
         introduction: "アオツノモリネズミは、シロモヤ山林などの湿った山林に生息する小型の夜行性哺乳類である。長い尾と青みがかった耳が特徴とされる。この記事はレイアウト見本用の架空の動物を紹介している。",
-        sections: &sections,
+        sections,
         infobox: ArticleInfobox {
             title: "アオツノモリネズミ",
             image_caption: "架空の動物・図版見本",
-            facts: &facts,
+            facts,
             draw_image: draw_animal_placeholder,
         },
-    };
-    draw_article_page(font, &article, state)
+    }
 }
 
-/// Draw the sample forest article linked from the animal article.
-fn draw_shiromoya_sanrin(font: &Font, state: &mut ArticlePageState) -> bool {
-    let sections = [
+/// Content of the sample forest article linked from the animal article.
+pub fn shiromoya_sanrin() -> Article<'static> {
+    let sections = &[
         ArticleSection {
             heading: "気候",
             body: "一年のうち約250日は白い霧に包まれ、昼でも見通しが悪い。気温の変化が小さく、地面は一年中湿っている。",
@@ -117,25 +124,24 @@ fn draw_shiromoya_sanrin(font: &Font, state: &mut ArticlePageState) -> bool {
             body: "林床にはアオツノモリネズミなどの夜行性の小動物が暮らしている。霧の濃い夜には、落ち葉を踏む小さな音が聞こえることがある。",
         },
     ];
-    let facts = [
+    let facts = &[
         InfoboxFact { label: "種類", value: "山林" },
         InfoboxFact { label: "標高", value: "約1200 m" },
         InfoboxFact { label: "霧の日数", value: "年間 約250日" },
         InfoboxFact { label: "代表的な生き物", value: "アオツノモリネズミ" },
     ];
-    let article = Article {
+    Article {
         title: "シロモヤ山林",
         category: "自然 / 地理",
         introduction: "シロモヤ山林は、一年の大半が白い霧に包まれる山林である。湿度が高く、アオツノモリネズミの主な生息地として知られる。この記事はリンク確認用の架空の土地を紹介している。",
-        sections: &sections,
+        sections,
         infobox: ArticleInfobox {
             title: "シロモヤ山林",
             image_caption: "架空の山林・図版見本",
-            facts: &facts,
+            facts,
             draw_image: draw_forest_placeholder,
         },
-    };
-    draw_article_page(font, &article, state)
+    }
 }
 
 /// Draw any article with a wrapped right-hand infobox. Returns true when back is clicked.

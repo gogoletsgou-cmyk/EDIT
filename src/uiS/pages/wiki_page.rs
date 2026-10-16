@@ -1,10 +1,11 @@
 ﻿use macroquad::prelude::*;
 
 use crate::ui::ui_screen::{components, layouts};
+use super::article_page::ArticleId;
 use components::{BLUE, INK, MUTED};
 
 /// Wikipedia風のホーム画面と仮のアカウント情報を描画する。
-pub fn draw(font: &Font) -> bool {
+pub fn draw(font: &Font) {
     clear_background(Color::new(0.97, 0.98, 0.98, 1.0));
     layouts::header(font);
 
@@ -15,13 +16,12 @@ pub fn draw(font: &Font) -> bool {
     let profile_width = width - main_width - gap;
     let content_y = top + 16.0;
 
-    let open_nature_article = draw_welcome(font, left, content_y, main_width);
+    draw_welcome(font, left, content_y, main_width);
     draw_account(font, profile_x, content_y, profile_width);
-    open_nature_article
 }
 
 /// 記事の閲覧を中心に、編集もできることを紹介する本文欄を描画する。
-fn draw_welcome(font: &Font, x: f32, y: f32, width: f32) -> bool {
+fn draw_welcome(font: &Font, x: f32, y: f32, width: f32) {
     let height = 610.0;
     components::panel(x, y, width, height);
     let pad = 38.0;
@@ -61,10 +61,11 @@ fn draw_welcome(font: &Font, x: f32, y: f32, width: f32) -> bool {
     let tile_gap = 16.0;
     let tile_width = (width - pad * 2.0 - tile_gap * 2.0) / 3.0;
     let topics = [("自然", "生き物や宇宙"), ("歴史", "過去の出来事"), ("文化", "芸術や社会")];
-    let mut open_nature_article = false;
     for (index, (title, description)) in topics.iter().enumerate() {
         let tile_x = x + pad + index as f32 * (tile_width + tile_gap);
-        open_nature_article |= draw_topic_tile(font, tile_x, tile_y, tile_width, title, description, index == 0);
+        if draw_topic_tile(font, tile_x, tile_y, tile_width, title, description, index == 0) {
+            ArticleId::AotsunoMorinezumi.open();
+        }
     }
 
     draw_line(x + pad, y + 426.0, x + width - pad, y + 426.0, 1.0, components::BORDER);
@@ -86,7 +87,6 @@ fn draw_welcome(font: &Font, x: f32, y: f32, width: f32) -> bool {
         MUTED,
     );
     components::text(font, "閲覧はいつでも自由に利用できます。", x + pad, y + 578.0, 14, BLUE);
-    open_nature_article
 }
 
 /// 記事の例を並べ、閲覧が主な使い方だと伝える小さなカードを描画する。
